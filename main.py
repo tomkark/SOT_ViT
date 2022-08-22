@@ -125,6 +125,7 @@ def main():
 
     criterion = LabelSmoothingCrossEntropy()
 
+    print("GPU (CUDA) Status: {}".format(torch.cuda.is_available()))
     if (not args.no_cuda) and torch.cuda.is_available():
         torch.cuda.set_device(args.gpu_id)
         model.cuda(args.gpu_id)

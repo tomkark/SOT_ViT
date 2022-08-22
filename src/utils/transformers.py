@@ -31,6 +31,7 @@ class Attention(Module):
         for i in range(attn.shape[0]):
             for j in range(attn.shape[1]):
                 attn[i, j] = self.SOT(q[i, j])
+
         attn = attn * self.scale
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
