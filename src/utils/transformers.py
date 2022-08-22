@@ -2,6 +2,7 @@ import torch
 from torch.nn import Module, ModuleList, Linear, Dropout, LayerNorm, Identity, Parameter, init
 import torch.nn.functional as F
 from .stochastic_depth import DropPath
+from SOT import SOT
 
 
 class Attention(Module):
@@ -19,13 +20,18 @@ class Attention(Module):
         self.attn_drop = Dropout(attention_dropout)
         self.proj = Linear(dim, dim)
         self.proj_drop = Dropout(projection_dropout)
+        self.SOT = SOT()
 
     def forward(self, x):
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
 
-        attn = (q @ k.transpose(-2, -1)) * self.scale
+        attn = torch.zeros_like(q)
+        for i in range(attn.shape[0]):
+            for j in range(attn.shape[1]):
+                attn[i, j] = self.SOT(q[i, j])
+        attn = attn * self.scale
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
 
