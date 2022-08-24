@@ -3,7 +3,7 @@ from .utils.transformers import TransformerClassifier, MaskedTransformerClassifi
 from .utils.tokenizer import Tokenizer, TextTokenizer
 from .utils.embedder import Embedder
 
-__all__ = ['cct_2', 'cct_4', 'cct_6', 'cct_7', 'cct_8',
+__all__ = ['cct_1_head', 'cct_2', 'cct_4', 'cct_6', 'cct_7', 'cct_8',
            'cct_14', 'cct_16',
            'text_cct_2', 'text_cct_4', 'text_cct_6'
            ]
@@ -126,6 +126,11 @@ def _text_cct(num_layers, num_heads, mlp_ratio, embedding_dim,
                    stride=stride,
                    padding=padding,
                    *args, **kwargs)
+
+
+def cct_1_head(*args, **kwargs):
+    return _cct(num_layers=2, num_heads=1, mlp_ratio=1, embedding_dim=128,
+                *args, **kwargs)
 
 
 def cct_2(*args, **kwargs):

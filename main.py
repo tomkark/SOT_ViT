@@ -263,7 +263,7 @@ def cls_validate(val_loader, model, criterion, args, epoch=None, time_begin=None
 
     avg_loss, avg_acc1 = (loss_val / n), (acc1_val / n)
     total_mins = -1 if time_begin is None else (time() - time_begin) / 60
-    print(f'[Epoch {epoch + 1}] \t \t Top-1 {avg_acc1:6.2f} \t \t Time: {total_mins:.2f}')
+    print(f'[Epoch {epoch + 1}] \t \t Top-1 {avg_acc1:6.5f} \t \t Time: {total_mins:.2f}')
 
     return avg_acc1
 
