@@ -134,7 +134,7 @@ def cct_1_head(*args, **kwargs):
 
 
 def cct_2(*args, **kwargs):
-    return _cct(num_layers=2, num_heads=2, mlp_ratio=1, embedding_dim=128,
+    return _cct(num_layers=2, num_heads=4, mlp_ratio=1, embedding_dim=128,
                 *args, **kwargs)
 
 

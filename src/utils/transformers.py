@@ -31,10 +31,10 @@ class Attention(Module):
         if not withSOT:
             attn = (q @ k.transpose(-2, -1))
         else:
-            attn = torch.zeros_like(q)
+            attn = torch.zeros(q.shape[0], q.shape[1], q.shape[2], q.shape[2], device="cuda:0")
             if not iterate_all:
                 for j in range(attn.shape[1]):
-                    attn[:, j, :, :] = self.SOT(q[:, j, :, :])
+                    attn[:, j, :, :] = self.SOT(q[:, j, :, :], k[:, j, :, :])
             else:
                 for i in range(attn.shape[0]):
                     for j in range(attn.shape[1]):

@@ -67,7 +67,7 @@ class SOT(torch.nn.Module):
         # divide the transportation matrix by its maximum for better contrastive effect (usually helps)
         if max_temperature:
             max_probability = features.max().item() if not batched else features.amax(dim=(1, 2))
-            features = features / max_probability
+            features = features / max_probability[:, None, None]
         else:
             max_probability = 1
 
