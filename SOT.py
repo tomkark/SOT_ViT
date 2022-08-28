@@ -23,10 +23,10 @@ class SOT(torch.nn.Module):
         self.distance_metric = distance_metric.lower()
         self.sigmoid = sigmoid
         self.ot_reg = ot_reg
-        self.diagonal_val = 1e3                         # value to mask self-values with
+        self.diagonal_val = 1e3  # value to mask self-values with
         self.positive_support_mask = None
 
-    def forward(self, X: torch.Tensor, n_samples: int = 20, y_support: torch.Tensor = None,
+    def forward(self, X: torch.Tensor, Y: torch.tensor = None, n_samples: int = 20, y_support: torch.Tensor = None,
                 max_temperature: bool = True):
         """
         Calculating The SOT for X
@@ -41,7 +41,10 @@ class SOT(torch.nn.Module):
 
         # calculate the self-distance matrix according to the requested distance metric
         if self.distance_metric == 'euclidean':
-            M = torch.cdist(X, X, p=2)
+            if Y is None:
+                M = torch.cdist(X, X, p=2)
+            else:
+                M = torch.cdist(X, Y, p=2)
             # scale euclidean distances to [0, 1], just to make strong difference between the distances and the diagonal
             M = M / M.max(dim=-1, keepdim=True)[0]
         else:
@@ -141,7 +144,8 @@ class SOT(torch.nn.Module):
         for i in range(self.sinkhorn_iterations):
             u1 = u  # useful to check the update
             u = self.ot_reg * (torch.log(mu + 1e-8) - torch.logsumexp(C(M, u, v, self.ot_reg), dim=-1)) + u
-            v = self.ot_reg * (torch.log(nu + 1e-8) - torch.logsumexp(C(M, u, v, self.ot_reg).transpose(-2, -1), dim=-1)) + v
+            v = self.ot_reg * (
+                        torch.log(nu + 1e-8) - torch.logsumexp(C(M, u, v, self.ot_reg).transpose(-2, -1), dim=-1)) + v
             err = (u - u1).abs().sum(-1).mean()
 
             actual_nits += 1

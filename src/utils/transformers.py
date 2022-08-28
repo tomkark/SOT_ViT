@@ -26,17 +26,19 @@ class Attention(Module):
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
-        withSOT = False
-        iterate_all = False
+        withSOT = True
+        iterate_all = True
         if not withSOT:
             attn = (q @ k.transpose(-2, -1))
         else:
             attn = torch.zeros_like(q)
-
-            for j in range(1):
-                attn[:, j, :, :] = self.SOT(q[:, j, :, :])
-            for i in range(attn.shape[0]):
-                attn[i, 1] = self.SOT(q[i, 1])
+            if not iterate_all:
+                for j in range(attn.shape[1]):
+                    attn[:, j, :, :] = self.SOT(q[:, j, :, :])
+            else:
+                for i in range(attn.shape[0]):
+                    for j in range(attn.shape[1]):
+                        attn[i, j] = self.SOT(q[i, j], k[i, j])
 
         attn = attn * self.scale
         attn = attn.softmax(dim=-1)
