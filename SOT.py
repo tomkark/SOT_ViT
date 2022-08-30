@@ -44,7 +44,7 @@ class SOT(torch.nn.Module):
             if Y is None:
                 M = torch.cdist(X, X, p=2)
             else:
-                M = torch.cdist(X, Y, p=2)
+                M = torch.cdist(X, Y.transpose(-1, -2), p=2)
             # scale euclidean distances to [0, 1], just to make strong differen$
             M = M / M.max(dim=-1, keepdim=True)[0]
         else:

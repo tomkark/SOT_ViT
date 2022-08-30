@@ -3,17 +3,17 @@
 import argparse
 from time import time
 import math
-
+from sys import stdout
 import torch
 import torch.nn as nn
 import torch.optim
 import torch.utils.data
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
-
+import logging
 import src as models
 from utils.losses import LabelSmoothingCrossEntropy
-
+import numpy as np
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("_")
                      and callable(models.__dict__[name]))
@@ -42,6 +42,7 @@ def init_parser():
     # Data args
     parser.add_argument('data', metavar='DIR',
                         help='path to dataset')
+    parser.add_argument('--ot', type=float, default=0.5)
 
     parser.add_argument('--dataset',
                         type=str.lower,
@@ -110,6 +111,10 @@ def init_parser():
 def main():
     global best_acc1
 
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s [%(levelname)s] %(message)s",
+                        handlers=[logging.FileHandler("debug.log"),
+                                  logging.StreamHandler(stdout)])
     parser = init_parser()
     args = parser.parse_args()
     img_size = DATASETS[args.dataset]['img_size']
@@ -121,7 +126,8 @@ def main():
                                         positional_embedding=args.positional_embedding,
                                         n_conv_layers=args.conv_layers,
                                         kernel_size=args.conv_size,
-                                        patch_size=args.patch_size)
+                                        patch_size=args.patch_size,
+                                        iloveavi=args.ot)
 
     criterion = LabelSmoothingCrossEntropy()
 
@@ -168,8 +174,7 @@ def main():
         val_dataset,
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers)
-
-    print("Beginning training")
+    print("Beginning training {}".format(args.ot))
     time_begin = time()
     for epoch in range(args.epochs):
         adjust_learning_rate(optimizer, epoch, args)
@@ -178,10 +183,9 @@ def main():
         best_acc1 = max(acc1, best_acc1)
 
     total_mins = (time() - time_begin) / 60
-    print(f'Script finished in {total_mins:.2f} minutes, '
+    logging.info(f'Script finished in {total_mins:.2f} minutes, '
           f'best top-1: {best_acc1:.2f}, '
-          f'final top-1: {acc1:.2f}')
-    torch.save(model.state_dict(), args.checkpoint_path)
+          f'final top-1: {acc1:.2f}, Entropy Coefficient: {args.ot}')
 
 
 def adjust_learning_rate(optimizer, epoch, args):
@@ -209,7 +213,7 @@ def accuracy(output, target):
         return res
 
 
-def cls_train(train_loader, model, criterion, optimizer, epoch, args):
+def cls_train(train_loader, model, criterion, optimizer, epoch, args, **kwargs):
     model.train()
     loss_val, acc1_val = 0, 0
     n = 0

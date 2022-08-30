@@ -3,6 +3,9 @@ from torch.nn import Module, ModuleList, Linear, Dropout, LayerNorm, Identity, P
 import torch.nn.functional as F
 from .stochastic_depth import DropPath
 from SOT import SOT
+from matplotlib import pyplot as plt
+from time import time
+import logging
 
 
 class Attention(Module):
@@ -10,7 +13,7 @@ class Attention(Module):
     Obtained from timm: github.com:rwightman/pytorch-image-models
     """
 
-    def __init__(self, dim, num_heads=8, attention_dropout=0.1, projection_dropout=0.1):
+    def __init__(self, dim, num_heads=8, attention_dropout=0.1, projection_dropout=0.1, **kwargs):
         super().__init__()
         self.num_heads = num_heads
         head_dim = dim // self.num_heads
@@ -20,7 +23,9 @@ class Attention(Module):
         self.attn_drop = Dropout(attention_dropout)
         self.proj = Linear(dim, dim)
         self.proj_drop = Dropout(projection_dropout)
-        self.SOT = SOT()
+        # if a keyword argument 'iloveavi' exists, send it as ot to the SOT constructor
+        self.SOT = SOT(ot_reg=kwargs.get('iloveavi', False))
+        self.start = time()
 
     def forward(self, x):
         B, N, C = x.shape
@@ -28,9 +33,22 @@ class Attention(Module):
         q, k, v = qkv[0], qkv[1], qkv[2]
         withSOT = True
         iterate_all = False
-        if not withSOT:
+        plot = False
+        if plot:
+            fig, axes = plt.subplots(nrows=2, ncols=3)
+        if plot or not withSOT:
             attn = (q @ k.transpose(-2, -1))
-        else:
+        if plot:
+            random_index = torch.randint(0, B, (1,)).item()
+            p = attn[random_index][0]
+            # plot the distribution of the attention weights on the left plot
+            pl = axes[0][0]
+            pl.hist(p.detach().cpu().numpy(), bins=100, range=(-1, 1))
+            pl.set_title('Original Attention Weights')
+            pl = axes[1][0]
+            pl.imshow(p.detach().cpu().numpy(), cmap='hot', interpolation='nearest')
+            pl.set_title('Original Attention Heatmap')
+        if withSOT or plot:
             attn = torch.zeros(q.shape[0], q.shape[1], q.shape[2], q.shape[2], device="cuda:0")
             if not iterate_all:
                 for j in range(attn.shape[1]):
@@ -39,11 +57,26 @@ class Attention(Module):
                 for i in range(attn.shape[0]):
                     for j in range(attn.shape[1]):
                         attn[i, j] = self.SOT(q[i, j], k[i, j])
-
+        if plot:
+            p = attn[random_index][0]
+            pl = axes[0][1]
+            pl.hist(p.detach().cpu().numpy(), bins=100, range=(-1, 1))
+            pl.set_title('(Pre-Softmax) SOT Attention Weights')
+            pl = axes[1][1]
+            pl.imshow(p.detach().cpu().numpy(), cmap='hot', interpolation='nearest')
+            pl.set_title('(Pre-Softmax) SOT Attention Heatmap')
         attn = attn * self.scale
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
-
+        if plot:
+            p = attn[random_index][0]
+            pl = axes[0][2]
+            pl.hist(p.detach().cpu().numpy(), bins=100)
+            pl.set_title('(Post-Softmax) SOT Attention Weights')
+            pl = axes[1][2]
+            pl.imshow(p.detach().cpu().numpy(), cmap='hot', interpolation='nearest')
+            pl.set_title('(Post-Softmax) SOT Attention Heatmap')
+            plt.show()
         x = (attn @ v).transpose(1, 2).reshape(B, N, C)
         x = self.proj(x)
         x = self.proj_drop(x)
@@ -91,11 +124,11 @@ class TransformerEncoderLayer(Module):
     """
 
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1,
-                 attention_dropout=0.1, drop_path_rate=0.1):
+                 attention_dropout=0.1, drop_path_rate=0.1, **kwargs):
         super(TransformerEncoderLayer, self).__init__()
         self.pre_norm = LayerNorm(d_model)
         self.self_attn = Attention(dim=d_model, num_heads=nhead,
-                                   attention_dropout=attention_dropout, projection_dropout=dropout)
+                                   attention_dropout=attention_dropout, projection_dropout=dropout, **kwargs)
 
         self.linear1 = Linear(d_model, dim_feedforward)
         self.dropout1 = Dropout(dropout)
@@ -194,7 +227,7 @@ class TransformerClassifier(Module):
         self.blocks = ModuleList([
             TransformerEncoderLayer(d_model=embedding_dim, nhead=num_heads,
                                     dim_feedforward=dim_feedforward, dropout=dropout,
-                                    attention_dropout=attention_dropout, drop_path_rate=dpr[i])
+                                    attention_dropout=attention_dropout, drop_path_rate=dpr[i], **kwargs)
             for i in range(num_layers)])
         self.norm = LayerNorm(embedding_dim)
 
