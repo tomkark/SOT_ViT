@@ -1,5 +1,7 @@
 # <u>Self-Optimal Transport Usage in Visual Transformers</u>
-We have used Daniel Shalam's [Self-Optimal Transport](https://github.com/DanielShalam/SOT) code and have modified it a bit to support input of 2 tensors.
+We were assigned with the task of integrating the SOT algorithm in the attention mechanism in a transformer NN.  
+In order to evaluate the differences we chose a [Compact Transformer](https://account.jetbrains.com/github/oauth/intellij/authorize?code_challenge=3y%2Bj7z1INw%2FWRw6ILR6YFi1QXCV5R7GcsQ1JLTD2Ygk%3D&callback_url=http%3A%2F%2F127.0.0.1%3A63342%2Fapi%2Fgithub%2Foauth%2Fauthorization_code) (namely, Convolutional Compact Transformer/CCT with 2 heads) with short training time.   
+We have used Daniel Shalam's & Simon Korman's [Self-Optimal Transport](https://github.com/DanielShalam/SOT) code and have modified it a bit to support input of 2 tensors.
 
 ## Testing SOT usage
 We tried various ways to combine the SOT with the Attention mechanism,  
