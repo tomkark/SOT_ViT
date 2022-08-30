@@ -117,7 +117,16 @@ In previous section we showed 2 versions of the experiment: with and without per
 Before SoftMax the tensor has a typical look of SOTed features - symmetric and with dense diagonal.    
 Even though SOT outputs positive values, since every row counts to 2, SoftMax is still needed. Nevertheless, we experimented without SoftMax and the results were
 better in one case and worse in the other.
+***
 
+## How to Run
+
+```bash
+  python main.py --ot 0.1 --model cct_2 --conv-size 3 --conv-layers 2 --print-freq -1 --epochs 30 --workers 1 cifar10/
+```
+
+You may change the arguments to your liking, the provided command is what we used in our experiments when using the default regularization coefficient
+(the ot argument)
 
 
 
