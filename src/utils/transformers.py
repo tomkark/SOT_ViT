@@ -5,8 +5,7 @@ from .stochastic_depth import DropPath
 from SOT import SOT
 from matplotlib import pyplot as plt
 from time import time
-import logging
-
+from numpy import log2
 
 class Attention(Module):
     """
@@ -27,27 +26,39 @@ class Attention(Module):
         self.SOT = SOT(ot_reg=kwargs.get('iloveavi', False))
         self.start = time()
 
+    @staticmethod
+    def plot_pair(axes, j, title_hist, p, **kwargs):
+        pl = axes[0][j]
+        if kwargs.get('noRange', False):
+            pl.hist(log2(p.flatten() + 1), bins=1000)
+        else:
+            pl.hist(p.flatten(), bins=1000, range=(-1, 1))
+        pl.set_title(title_hist)
+        pl = axes[1][j]
+        i = pl.imshow(p, cmap='hot', interpolation='nearest')
+        plt.colorbar(i, ax=pl)
+
     def forward(self, x):
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
         withSOT = True
         iterate_all = False
-        plot = False
+        plot = time() - self.start > 600
         if plot:
-            fig, axes = plt.subplots(nrows=2, ncols=3)
+            fig, axes = plt.subplots(nrows=2, ncols=4)
         if plot or not withSOT:
             attn = (q @ k.transpose(-2, -1))
         if plot:
             random_index = torch.randint(0, B, (1,)).item()
-            p = attn[random_index][0]
+            p = attn[random_index][1]
             # plot the distribution of the attention weights on the left plot
-            pl = axes[0][0]
-            pl.hist(p.detach().cpu().numpy(), bins=100, range=(-1, 1))
-            pl.set_title('Original Attention Weights')
-            pl = axes[1][0]
-            pl.imshow(p.detach().cpu().numpy(), cmap='hot', interpolation='nearest')
-            pl.set_title('Original Attention Heatmap')
+            self.plot_pair(axes, 0, '(Pre-Softmax) Original Attention', p.detach().cpu().numpy())
+            attn = attn * self.scale
+            attn = attn.softmax(dim=-1)
+            attn = self.attn_drop(attn)
+            p = attn[random_index][1]
+            self.plot_pair(axes, 1, '(Post-Softmax) Original Attention Weights', p.detach().cpu().numpy(), noRange=True)
         if withSOT or plot:
             attn = torch.zeros(q.shape[0], q.shape[1], q.shape[2], q.shape[2], device="cuda:0")
             if not iterate_all:
@@ -58,24 +69,14 @@ class Attention(Module):
                     for j in range(attn.shape[1]):
                         attn[i, j] = self.SOT(q[i, j], k[i, j])
         if plot:
-            p = attn[random_index][0]
-            pl = axes[0][1]
-            pl.hist(p.detach().cpu().numpy(), bins=100, range=(-1, 1))
-            pl.set_title('(Pre-Softmax) SOT Attention Weights')
-            pl = axes[1][1]
-            pl.imshow(p.detach().cpu().numpy(), cmap='hot', interpolation='nearest')
-            pl.set_title('(Pre-Softmax) SOT Attention Heatmap')
+            p = attn[random_index][1]
+            self.plot_pair(axes, 2, '(Pre-Softmax) SOT Attention Weights', p.detach().cpu().numpy())
         attn = attn * self.scale
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
         if plot:
-            p = attn[random_index][0]
-            pl = axes[0][2]
-            pl.hist(p.detach().cpu().numpy(), bins=100)
-            pl.set_title('(Post-Softmax) SOT Attention Weights')
-            pl = axes[1][2]
-            pl.imshow(p.detach().cpu().numpy(), cmap='hot', interpolation='nearest')
-            pl.set_title('(Post-Softmax) SOT Attention Heatmap')
+            p = attn[random_index][1]
+            self.plot_pair(axes, 3, '(Post-Softmax) SOT Attention Weights', p.detach().cpu().numpy(), noRange=True)
             plt.show()
         x = (attn @ v).transpose(1, 2).reshape(B, N, C)
         x = self.proj(x)
