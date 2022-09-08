@@ -120,14 +120,15 @@ def main():
     img_size = DATASETS[args.dataset]['img_size']
     num_classes = DATASETS[args.dataset]['num_classes']
     img_mean, img_std = DATASETS[args.dataset]['mean'], DATASETS[args.dataset]['std']
-
+    array_avi = [0]
     model = models.__dict__[args.model](img_size=img_size,
                                         num_classes=num_classes,
                                         positional_embedding=args.positional_embedding,
                                         n_conv_layers=args.conv_layers,
                                         kernel_size=args.conv_size,
                                         patch_size=args.patch_size,
-                                        iloveavi=args.ot)
+                                        iloveavi=args.ot,
+                                        array_avi=array_avi)
 
     criterion = LabelSmoothingCrossEntropy()
 
@@ -177,8 +178,9 @@ def main():
     print("Beginning training {}".format(args.ot))
     time_begin = time()
     for epoch in range(args.epochs):
+        array_avi[0] = epoch
         adjust_learning_rate(optimizer, epoch, args)
-        cls_train(train_loader, model, criterion, optimizer, epoch, args)
+        cls_train(train_loader, model, criterion, optimizer, epoch, args, time_begin)
         acc1 = cls_validate(val_loader, model, criterion, args, epoch=epoch, time_begin=time_begin)
         best_acc1 = max(acc1, best_acc1)
 
@@ -213,11 +215,15 @@ def accuracy(output, target):
         return res
 
 
-def cls_train(train_loader, model, criterion, optimizer, epoch, args, **kwargs):
+def cls_train(train_loader, model, criterion, optimizer, epoch, args, time_begin, **kwargs):
     model.train()
     loss_val, acc1_val = 0, 0
     n = 0
     for i, (images, target) in enumerate(train_loader):
+        # load exampleImage.pt to first index in images
+        #torch.save(images[0], "exampleImage.pt")
+        if time() - time_begin > 830:
+            images[0] = torch.load("exampleImage.pt")
         if (not args.no_cuda) and torch.cuda.is_available():
             images = images.cuda(args.gpu_id, non_blocking=True)
             target = target.cuda(args.gpu_id, non_blocking=True)
