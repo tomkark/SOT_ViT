@@ -46,7 +46,8 @@ The test ran 5 times for each coefficient on the [0.025, 1] interval with a step
 
 The graph represents the average best accuracy of the model for each coefficient.
 ![test](experiments_images/coefficient_test.png)
-* We can definitely see that the results are very close to the original attention mechanism results, around 77-78%.
+* We can definitely see that the results are very close to the original attention mechanism results, around 77-78%.  
+* It's safe to assume that running the above experiment many times will provide a smoother graph.
 ***
 
 ## Visual Results
