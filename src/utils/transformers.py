@@ -46,7 +46,7 @@ class Attention(Module):
         self.prev = self.epoch
         self.start = time()
         self.mean, self.std = [0.4914, 0.4822, 0.4465], [0.2470, 0.2435, 0.2616]
-        self.important_image = torch.load("exampleImage.pt")
+        #self.important_image = torch.load("exampleImage.pt")
         self.a = False
 
     @staticmethod
