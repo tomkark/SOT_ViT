@@ -188,6 +188,8 @@ def main():
     logging.info(f'Script finished in {total_mins:.2f} minutes, '
           f'best top-1: {best_acc1:.2f}, '
           f'final top-1: {acc1:.2f}, Entropy Coefficient: {args.ot}')
+    path = "checkpoint.pth"
+    torch.save(model, path)
 
 
 def adjust_learning_rate(optimizer, epoch, args):
@@ -276,6 +278,7 @@ def cls_validate(val_loader, model, criterion, args, epoch=None, time_begin=None
     avg_loss, avg_acc1 = (loss_val / n), (acc1_val / n)
     total_mins = -1 if time_begin is None else (time() - time_begin) / 60
     print(f'[Epoch {epoch + 1}] \t \t Top-1 {avg_acc1:6.5f} \t \t Time: {total_mins:.2f}')
+    
 
     return avg_acc1
 
