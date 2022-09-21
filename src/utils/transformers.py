@@ -66,7 +66,7 @@ class Attention(Module):
 
         iterate_all = False
         plot = False
-        plot2 = not self.a and time() - self.start > 840
+        plot2 = self.a and time() - self.start > 840
         # time() - self.start > 600
         if plot:
             fig, axes = plt.subplots(nrows=2, ncols=4)
