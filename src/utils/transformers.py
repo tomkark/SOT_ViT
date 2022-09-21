@@ -33,22 +33,9 @@ class Attention(Module):
         q, k, v = qkv[0], qkv[1], qkv[2]
         withSOT = True
         iterate_all = False
-        plot = False
-        if plot:
-            fig, axes = plt.subplots(nrows=2, ncols=3)
-        if plot or not withSOT:
+        if not withSOT:
             attn = (q @ k.transpose(-2, -1))
-        if plot:
-            random_index = torch.randint(0, B, (1,)).item()
-            p = attn[random_index][0]
-            # plot the distribution of the attention weights on the left plot
-            pl = axes[0][0]
-            pl.hist(p.detach().cpu().numpy(), bins=100, range=(-1, 1))
-            pl.set_title('Original Attention Weights')
-            pl = axes[1][0]
-            pl.imshow(p.detach().cpu().numpy(), cmap='hot', interpolation='nearest')
-            pl.set_title('Original Attention Heatmap')
-        if withSOT or plot:
+        else:
             attn = torch.zeros(q.shape[0], q.shape[1], q.shape[2], q.shape[2], device="cuda:0")
             if not iterate_all:
                 for j in range(attn.shape[1]):
@@ -57,26 +44,9 @@ class Attention(Module):
                 for i in range(attn.shape[0]):
                     for j in range(attn.shape[1]):
                         attn[i, j] = self.SOT(q[i, j], k[i, j])
-        if plot:
-            p = attn[random_index][0]
-            pl = axes[0][1]
-            pl.hist(p.detach().cpu().numpy(), bins=100, range=(-1, 1))
-            pl.set_title('(Pre-Softmax) SOT Attention Weights')
-            pl = axes[1][1]
-            pl.imshow(p.detach().cpu().numpy(), cmap='hot', interpolation='nearest')
-            pl.set_title('(Pre-Softmax) SOT Attention Heatmap')
         attn = attn * self.scale
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
-        if plot:
-            p = attn[random_index][0]
-            pl = axes[0][2]
-            pl.hist(p.detach().cpu().numpy(), bins=100)
-            pl.set_title('(Post-Softmax) SOT Attention Weights')
-            pl = axes[1][2]
-            pl.imshow(p.detach().cpu().numpy(), cmap='hot', interpolation='nearest')
-            pl.set_title('(Post-Softmax) SOT Attention Heatmap')
-            plt.show()
         x = (attn @ v).transpose(1, 2).reshape(B, N, C)
         x = self.proj(x)
         x = self.proj_drop(x)
