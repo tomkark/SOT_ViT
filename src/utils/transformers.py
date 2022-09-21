@@ -16,8 +16,8 @@ def image_histogram_equalization(image, number_bins=256):
 
     # get image histogram
     image_histogram, bins = np.histogram(image.flatten(), number_bins, density=True)
-    cdf = image_histogram.cumsum() # cumulative distribution function
-    cdf = (number_bins-1) * cdf / cdf[-1] # normalize
+    cdf = image_histogram.cumsum()  # cumulative distribution function
+    cdf = (number_bins - 1) * cdf / cdf[-1]  # normalize
 
     # use linear interpolation of cdf to find new pixel values
     image_equalized = np.interp(image.flatten(), bins[:-1], cdf)
@@ -47,6 +47,7 @@ class Attention(Module):
         self.start = time()
         self.mean, self.std = [0.4914, 0.4822, 0.4465], [0.2470, 0.2435, 0.2616]
         self.important_image = torch.load("exampleImage.pt")
+        self.a = False
 
     @staticmethod
     def plot_pair(axes, j, title_hist, p, **kwargs):
@@ -61,29 +62,31 @@ class Attention(Module):
         plt.colorbar(i, ax=pl)
 
     def forward(self, x):
-        if self.prev == self.epoch[0] + 1:
-            print("change {}".format(self.prev))
-            self.epoch[0] = self.prev
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
-        withSOT = False
+        withSOT = True
 
         iterate_all = False
         plot = False
-        plot2 = time()-self.start > 840
+        plot2 = self.a and time() - self.start > 410
         # time() - self.start > 600
         if plot:
             fig, axes = plt.subplots(nrows=2, ncols=4)
         if plot2:
-            fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(1,1))
+            self.a = True
+            fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(1, 1))
             avi = torchvision.utils.make_grid(torch.load('exampleImage.pt'))
             # Inverting the normalization
             avi = avi.permute(1, 2, 0).mul(torch.tensor(self.std))
             avi += torch.tensor(self.mean)
             avi = avi.detach().cpu().numpy()
-            avi = cv2.rectangle(cv2.cvtColor(avi, cv2.COLOR_BGR2GRAY), (11, 11), (16, 16), (0, 0, 0), 1)
-            axes[0].imshow(avi, cmap='gray')
+            avi1 = cv2.rectangle(cv2.cvtColor(avi, cv2.COLOR_BGR2GRAY), (11, 11), (16, 16), (0, 0, 0), 1)
+            axes[0][0].imshow(avi1, cmap='gray')
+            avi2 = cv2.rectangle(cv2.cvtColor(avi, cv2.COLOR_BGR2GRAY), (11, 23), (16, 28), (0, 0, 0), 1)
+            axes[1][0].imshow(avi2, cmap='gray')
+            avi3 = cv2.rectangle(cv2.cvtColor(avi, cv2.COLOR_BGR2GRAY), (11, 3), (16, 8), (0, 0, 0), 1)
+            axes[2][0].imshow(avi3, cmap='gray')
         if plot or not withSOT:
             attn = (q @ k.transpose(-2, -1))
         if plot:
@@ -110,18 +113,30 @@ class Attention(Module):
             self.plot_pair(axes, 2, '(Pre-Softmax) SOT Attention Weights', p.detach().cpu().numpy())
         if plot2:
             patch_heatmap = torch.zeros(32, 32, device="cuda:0")
-
+            patch_heatmap2 = torch.zeros(32, 32, device="cuda:0")
+            patch_heatmap3 = torch.zeros(32, 32, device="cuda:0")
             for i in range(32):
                 for j in range(32):
-                    patch_heatmap[i, j] = attn[0,0,27,math.floor((i / 4)) * 8 + math.floor(j / 4)]
+                    patch_heatmap[i, j] = attn[0, 0, 27, math.floor((i / 4)) * 8 + math.floor(j / 4)]
+                    patch_heatmap2[i, j] = attn[0, 0, 51, math.floor((i / 4)) * 8 + math.floor(j / 4)]
+                    patch_heatmap3[i, j] = attn[0, 0, 11, math.floor((i / 4)) * 8 + math.floor(j / 4)]
 
             patch_heatmap = patch_heatmap.detach().cpu().numpy()
+            patch_heatmap2 = patch_heatmap2.detach().cpu().numpy()
+            patch_heatmap3 = patch_heatmap3.detach().cpu().numpy()
 
             patch_heatmap, _ = image_histogram_equalization(patch_heatmap)
+            patch_heatmap2, _ = image_histogram_equalization(patch_heatmap2)
+            patch_heatmap3, _ = image_histogram_equalization(patch_heatmap3)
 
-            i = axes[1].imshow(patch_heatmap/256, cmap='hot', interpolation='nearest')
-            plt.colorbar(i, ax=axes[1])
+            i = axes[0][1].imshow(patch_heatmap / 256, cmap='hot', interpolation='nearest')
+            plt.colorbar(i, ax=axes[0][1])
+            i = axes[1][1].imshow(patch_heatmap2 / 256, cmap='hot', interpolation='nearest')
+            plt.colorbar(i, ax=axes[1][1])
+            i = axes[2][1].imshow(patch_heatmap3 / 256, cmap='hot', interpolation='nearest')
+            plt.colorbar(i, ax=axes[2][1])
             plt.show()
+
 
         attn = attn * self.scale
         attn = attn.softmax(dim=-1)

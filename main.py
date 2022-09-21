@@ -219,11 +219,13 @@ def cls_train(train_loader, model, criterion, optimizer, epoch, args, time_begin
     model.train()
     loss_val, acc1_val = 0, 0
     n = 0
+    a = False
     for i, (images, target) in enumerate(train_loader):
         # load exampleImage.pt to first index in images
         #torch.save(images[0], "exampleImage.pt")
-        if time() - time_begin > 830:
+        if a and time() - time_begin > 400:
             images[0] = torch.load("exampleImage.pt")
+            a = True
         if (not args.no_cuda) and torch.cuda.is_available():
             images = images.cuda(args.gpu_id, non_blocking=True)
             target = target.cuda(args.gpu_id, non_blocking=True)
