@@ -188,9 +188,7 @@ def main():
     logging.info(f'Script finished in {total_mins:.2f} minutes, '
           f'best top-1: {best_acc1:.2f}, '
           f'final top-1: {acc1:.2f}, Entropy Coefficient: {args.ot}')
-    path = "checkpoint.pth"
-    torch.save(model, path)
-
+    torch.save(model.state_dict(), args.checkpoint_path)
 
 def adjust_learning_rate(optimizer, epoch, args):
     lr = args.lr
