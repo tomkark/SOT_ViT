@@ -223,7 +223,7 @@ def cls_train(train_loader, model, criterion, optimizer, epoch, args, time_begin
     for i, (images, target) in enumerate(train_loader):
         # load exampleImage.pt to first index in images
         #torch.save(images[0], "exampleImage.pt")
-        if a and time() - time_begin > 400:
+        if not a and time() - time_begin > 0:
             images[0] = torch.load("exampleImage.pt")
             a = True
         if (not args.no_cuda) and torch.cuda.is_available():

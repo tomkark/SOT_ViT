@@ -42,11 +42,8 @@ class Attention(Module):
         self.proj_drop = Dropout(projection_dropout)
         # if a keyword argument 'iloveavi' exists, send it as ot to the SOT constructor
         self.SOT = SOT(ot_reg=kwargs.get('iloveavi', False))
-        self.epoch = kwargs.get("array_avi", 0)
-        self.prev = self.epoch
         self.start = time()
         self.mean, self.std = [0.4914, 0.4822, 0.4465], [0.2470, 0.2435, 0.2616]
-        #self.important_image = torch.load("exampleImage.pt")
         self.a = False
 
     @staticmethod
@@ -69,7 +66,7 @@ class Attention(Module):
 
         iterate_all = False
         plot = False
-        plot2 = self.a and time() - self.start > 410
+        plot2 = not self.a and time() - self.start > 840
         # time() - self.start > 600
         if plot:
             fig, axes = plt.subplots(nrows=2, ncols=4)
