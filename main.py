@@ -57,8 +57,8 @@ def init_parser():
 
     parser.add_argument('--checkpoint-path',
                         type=str,
-                        default='checkpoint.pth',
-                        help='path to checkpoint (default: checkpoint.pth)')
+                        default='checkpoint-nosot.pth',
+                        help='path to checkpoint (default: checkpoint-nosot.pth)')
 
     # Optimization hyperparams
     parser.add_argument('--epochs', default=200, type=int, metavar='N',

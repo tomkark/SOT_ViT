@@ -16,13 +16,10 @@ class SOT(torch.nn.Module):
         super().__init__()
 
         # check if the requested distance metric is available
-        assert distance_metric.lower() in SOT.supported_distances
-        assert sinkhorn_iterations > 0
-
-        self.sinkhorn_iterations = sinkhorn_iterations
-        self.distance_metric = distance_metric.lower()
-        self.sigmoid = sigmoid
-        self.ot_reg = ot_reg
+        self.sinkhorn_iterations = 10
+        self.distance_metric = 'euclidean'
+        self.sigmoid = True
+        self.ot_reg = 0.8
         self.diagonal_val = 1e3                         # value to mask self-values with
         self.positive_support_mask = None
 

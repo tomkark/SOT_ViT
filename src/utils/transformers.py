@@ -66,19 +66,19 @@ class Attention(Module):
 
         iterate_all = False
         plot = False
-        plot2 = self.a and time() - self.start > 840
+        plot2 = x.shape[0] == 4
         # time() - self.start > 600
         if plot:
             fig, axes = plt.subplots(nrows=2, ncols=4)
         if plot2:
             self.a = True
             fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(1, 1))
-            avi = torchvision.utils.make_grid(torch.load('exampleImage.pt'))
+            avi = torchvision.utils.make_grid(torch.load('1.pt'))
             # Inverting the normalization
             avi = avi.permute(1, 2, 0).mul(torch.tensor(self.std))
             avi += torch.tensor(self.mean)
             avi = avi.detach().cpu().numpy()
-            avi1 = cv2.rectangle(cv2.cvtColor(avi, cv2.COLOR_BGR2GRAY), (11, 11), (16, 16), (0, 0, 0), 1)
+            avi1 = cv2.rectangle(cv2.cvtColor(avi, cv2.COLOR_BGR2GRAY), (15, 15), (21, 21), (0, 0, 0), 1)
             axes[0][0].imshow(avi1, cmap='gray')
             avi2 = cv2.rectangle(cv2.cvtColor(avi, cv2.COLOR_BGR2GRAY), (11, 23), (16, 28), (0, 0, 0), 1)
             axes[1][0].imshow(avi2, cmap='gray')
@@ -97,10 +97,10 @@ class Attention(Module):
             p = attn[random_index][1]
             self.plot_pair(axes, 1, '(Post-Softmax) Original Attention Weights', p.detach().cpu().numpy(), noRange=True)
         if withSOT or plot:
-            attn = torch.zeros(q.shape[0], q.shape[1], q.shape[2], q.shape[2], device="cuda:0")
+            attn = torch.zeros(q.shape[0], q.shape[1], q.shape[2], q.shape[2], device=v.device)
             if not iterate_all:
                 for j in range(attn.shape[1]):
-                    attn[:, j, :, :] = self.SOT(q[:, j, :, :], k[:, j, :, :])
+                    attn[:, j, :, :] = self.SOT(q[:, j, :, :])
             else:
                 for i in range(attn.shape[0]):
                     for j in range(attn.shape[1]):
@@ -114,7 +114,7 @@ class Attention(Module):
             patch_heatmap3 = torch.zeros(32, 32, device="cuda:0")
             for i in range(32):
                 for j in range(32):
-                    patch_heatmap[i, j] = attn[0, 0, 27, math.floor((i / 4)) * 8 + math.floor(j / 4)]
+                    patch_heatmap[i, j] = attn[0, 0, 36, math.floor((i / 4)) * 8 + math.floor(j / 4)]
                     patch_heatmap2[i, j] = attn[0, 0, 51, math.floor((i / 4)) * 8 + math.floor(j / 4)]
                     patch_heatmap3[i, j] = attn[0, 0, 11, math.floor((i / 4)) * 8 + math.floor(j / 4)]
 
