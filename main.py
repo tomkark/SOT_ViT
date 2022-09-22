@@ -57,7 +57,7 @@ def init_parser():
 
     parser.add_argument('--checkpoint-path',
                         type=str,
-                        default='checkpoint-nosot.pth',
+                        default='checkpoint.pth',
                         help='path to checkpoint (default: checkpoint.pth)')
 
     # Optimization hyperparams
