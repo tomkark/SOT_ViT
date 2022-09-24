@@ -62,15 +62,9 @@ class Attention(Module):
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
-        withSOT = True
-
-        iterate_all = False
-        plot = False
-        plot2 = x.shape[0] == 4
-        # time() - self.start > 600
+    
         if plot:
             fig, axes = plt.subplots(nrows=2, ncols=4)
-        if plot2:
             self.a = True
             fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(1, 1))
             avi = torchvision.utils.make_grid(torch.load('1.pt'))
@@ -84,7 +78,7 @@ class Attention(Module):
             axes[1][0].imshow(avi2, cmap='gray')
             avi3 = cv2.rectangle(cv2.cvtColor(avi, cv2.COLOR_BGR2GRAY), (11, 3), (16, 8), (0, 0, 0), 1)
             axes[2][0].imshow(avi3, cmap='gray')
-        if plot or not withSOT:
+        if not withSOT:
             attn = (q @ k.transpose(-2, -1))
         if plot:
             random_index = torch.randint(0, B, (1,)).item()
@@ -96,19 +90,16 @@ class Attention(Module):
             attn = self.attn_drop(attn)
             p = attn[random_index][1]
             self.plot_pair(axes, 1, '(Post-Softmax) Original Attention Weights', p.detach().cpu().numpy(), noRange=True)
-        if withSOT or plot:
+            
+        if withSOT:
             attn = torch.zeros(q.shape[0], q.shape[1], q.shape[2], q.shape[2], device=v.device)
             if not iterate_all:
                 for j in range(attn.shape[1]):
                     attn[:, j, :, :] = self.SOT(q[:, j, :, :])
-            else:
-                for i in range(attn.shape[0]):
-                    for j in range(attn.shape[1]):
-                        attn[i, j] = self.SOT(q[i, j], k[i, j])
+            
         if plot:
             p = attn[random_index][1]
             self.plot_pair(axes, 2, '(Pre-Softmax) SOT Attention Weights', p.detach().cpu().numpy())
-        if plot2:
             patch_heatmap = torch.zeros(32, 32, device="cuda:0")
             patch_heatmap2 = torch.zeros(32, 32, device="cuda:0")
             patch_heatmap3 = torch.zeros(32, 32, device="cuda:0")
