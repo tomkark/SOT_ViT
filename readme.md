@@ -94,7 +94,7 @@ Since the images are of size 32*32 pixels only, it's recommended to zoon-in and 
 For example, in the third patch, the attention is awarded to the ceiling/background of the image (probably) because it is the most similiar part
 
 #### <u> With SOT(Q, K) </u>
-![test](experiments_images/with_SOT(Q, K)(test_set).png)
+![test](experiments_images/with_SOT(Q, K)(test_set).png)  
 Indeed, some of the heatmaps are less explainable
 ***
 
