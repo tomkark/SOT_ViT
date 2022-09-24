@@ -39,7 +39,7 @@ More about the Softmax part later.
 <b>76.76%</b>
 
 ### <u>Overfitting</u>
-The level of overfitting seems to be similiar in both cases but we believe there's room for further analysis.
+The levels of overfitting seem to be similiar in both cases but we believe there's room for further analysis.
 In the trainTest notebook the difference of accuracy between train and test time can be seen.
 
 ### <u>Testing SOT With Different Regularization Coefficients</u>
@@ -83,16 +83,17 @@ better in one case and worse in the other.
 ### <u> Heatmap of specific patches </u>
 
 The next images show how the attention weights per patch (there are 64 patches of size 4*4) look like with and without SOT.
-It can be seen that whilst in the general case the location of the patch has only a subtle influence on the attention, when applying SOT however it gets very different due to nature of SOT which attributes more weight to areas that are similiar. Also, the patch itself is allways wight for the same reason. 
+It can be seen that whilst in the general case the location of the patch has only a subtle influence on the attention, when applying SOT however it gets very different due to nature of SOT which attributes more weight to areas that are similiar. Also, the patch itself is allways wight for the same reason.
+Since the images are of size 32*32 pixels only, it's recommended to zoon-in and discover the content of the image.
 
-####<u>Without SOT</u>
+#### <u> Without SOT </u>
 ![test](experiments_images/without_SOT(test_set).png)
 
-####<u>With SOT(Q)</u>
+#### <u> With SOT(Q) </u>
 ![test](experiments_images/withSOT(Q)(testTime).png)
 For example, in the third patch, the attention is awarded to the ceiling/background of the image (probably) because it is the most similiar part
 
-####<u>With SOT(Q, K)</u>
+#### <u> With SOT(Q, K) </u>
 ![test](experiments_images/with_SOT(Q, K)(test_set).png)
 
 ***
