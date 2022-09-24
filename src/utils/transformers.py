@@ -93,9 +93,13 @@ class Attention(Module):
             
         if withSOT:
             attn = torch.zeros(q.shape[0], q.shape[1], q.shape[2], q.shape[2], device=v.device)
-            if not iterate_all:
+            if not qk:
                 for j in range(attn.shape[1]):
                     attn[:, j, :, :] = self.SOT(q[:, j, :, :])
+            else:
+                for j in range(attn.shape[1]):
+                    attn[:, j, :, :] = self.SOT(q[:, j, :, :], k[:, j, :, :])
+                
             
         if plot:
             p = attn[random_index][1]
