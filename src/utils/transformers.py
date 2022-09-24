@@ -62,7 +62,11 @@ class Attention(Module):
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
-    
+        
+        withsot = 0
+        plot = 0
+        qk = 0
+        
         if plot:
             fig, axes = plt.subplots(nrows=2, ncols=4)
             self.a = True
