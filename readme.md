@@ -95,8 +95,7 @@ For example, in the third patch, the attention is awarded to the ceiling/backgro
 
 #### <u> With SOT(Q, K) </u>
 ![test](experiments_images/with_SOT(Q, K)(test_set).png)
-
-
+Indeed, some of the heatmaps are less explainable
 ***
 
 ## How to Run
