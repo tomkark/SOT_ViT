@@ -62,8 +62,7 @@ transformer = cct_2(img_size=32,
 
 transformer.load_state_dict(torch.load('checkpoint-nosot.pth'))
 images, labels = test_dataiter.next()
-torch.save(images[0], "exampleImage.pt")
-images[0] = torch.load("1.pt")
-images[1] = torch.load("2.pt")
+#torch.save(images[0], "exampleImage.pt")
+images[0] = torch.load("images/exampleImage.pt")
 _, predicted = torch.max(transformer(images), 1)
 imshow(images, labels, predicted)
