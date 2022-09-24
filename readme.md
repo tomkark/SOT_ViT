@@ -89,13 +89,15 @@ Since the images are of size 32*32 pixels only, it's recommended to zoon-in and 
 #### <u> Without SOT </u>
 ![test](experiments_images/withoutSOT.png)
 
+#### <u> With SOT(Q, K) </u>
+![test](experiments_images/withSOT(Q, K).png)  
+Indeed, some of the heatmaps are less explainable
+
 #### <u> With SOT(Q) </u>
 ![test](experiments_images/withSOT(Q).png)
 For example, in the third patch, the attention is awarded to the ceiling/background of the image (probably) because it is the most similiar part
 
-#### <u> With SOT(Q, K) </u>
-![test](experiments_images/withSOT(Q, K).png)  
-Indeed, some of the heatmaps are less explainable
+
 ***
 
 ## How to Run
