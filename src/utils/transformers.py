@@ -71,7 +71,7 @@ class Attention(Module):
             fig, axes = plt.subplots(nrows=2, ncols=4)
             self.a = True
             fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(1, 1))
-            avi = torchvision.utils.make_grid(torch.load('1.pt'))
+            avi = torchvision.utils.make_grid(torch.load('exampleImage.pt'))
             # Inverting the normalization
             avi = avi.permute(1, 2, 0).mul(torch.tensor(self.std))
             avi += torch.tensor(self.mean)
