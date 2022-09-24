@@ -56,7 +56,7 @@ The graph represents the average best accuracy of the model for each coefficient
 
 ## Visual Results
 
-### <u> Histograms && Heatmaps of Attention Weights </u>
+### <u> Histograms & Heatmaps of Attention Weights </u>
 
 We have selected a random tensor inside the input in a random batch and wanted  
 to see the attention inside it visually so we have made a heatmap for the attention weights  
@@ -87,14 +87,14 @@ It can be seen that whilst in the general case the location of the patch has onl
 Since the images are of size 32*32 pixels only, it's recommended to zoon-in and discover the content of the image.
 
 #### <u> Without SOT </u>
-![test](experiments_images/without_SOT(test_set).png)
+![test](experiments_images/withoutSOT.png)
 
 #### <u> With SOT(Q) </u>
-![test](experiments_images/withSOT(Q)(testTime).png)
+![test](experiments_images/withSOT(Q).png)
 For example, in the third patch, the attention is awarded to the ceiling/background of the image (probably) because it is the most similiar part
 
 #### <u> With SOT(Q, K) </u>
-![test](experiments_images/with_SOT(Q, K)(test_set).png)  
+![test](experiments_images/withSOT(Q, K).png)  
 Indeed, some of the heatmaps are less explainable
 ***
 
