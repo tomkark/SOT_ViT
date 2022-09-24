@@ -84,7 +84,7 @@ better in one case and worse in the other.
 
 The next images show how the attention weights per patch (there are 64 patches of size 4*4) look like with and without SOT.
 It can be seen that whilst in the general case the location of the patch has only a subtle influence on the attention, when applying SOT however it gets very different due to nature of SOT which attributes more weight to areas that are similiar. Also, the patch itself is allways wight for the same reason.
-Since the images are of size 32*32 pixels only, it's recommended to zoon-in and discover the content of the image.
+Since the images are of size 32X32 pixels only, it's recommended to zoon-in and discover the content of the image.
 
 #### <u> Without SOT </u>
 ![test](experiments_images/withoutSOT.png)
