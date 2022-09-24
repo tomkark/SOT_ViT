@@ -43,7 +43,13 @@ def init_parser():
     parser.add_argument('data', metavar='DIR',
                         help='path to dataset')
     parser.add_argument('--ot', type=float, default=0.5)
-
+    
+    parser.add_argument('--withsot', type=boolian, default=0)
+    
+    parser.add_argument('--qk', type=boolian, default=0)
+    
+    parser.add_argument('--plot', type=boolian, default=0)
+    
     parser.add_argument('--dataset',
                         type=str.lower,
                         choices=['cifar10', 'cifar100'],
