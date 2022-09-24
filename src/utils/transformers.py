@@ -63,7 +63,7 @@ class Attention(Module):
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
         
-        withsot = 0
+        withSOT = 0
         plot = 0
         qk = 0
         
