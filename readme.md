@@ -38,6 +38,10 @@ More about the Softmax part later.
 * `Attention = SOT(Q, K.T)`
 <b>76.76%</b>
 
+### <u>Overfitting</u>
+The level of overfitting seems to be similiar in both cases but we believe there's room for further analysis.
+In the trainTest notebook the difference of accuracy between train and test time can be seen.
+
 ### <u>Testing SOT With Different Regularization Coefficients</u>
 We have ran a test to see whether different regularization coefficients achieved  
 worse/better results and whether we can beat our previous results.
@@ -52,15 +56,16 @@ The graph represents the average best accuracy of the model for each coefficient
 
 ## Visual Results
 
+### <u> Histograms && Heatmaps of Attention Weights </u>
+
 We have selected a random tensor inside the input in a random batch and wanted  
 to see the attention inside it visually so we have made a heatmap for the attention weights  
 and also have visualized the distribution of the attention weights.
 
-### <u> Histograms && Heatmaps of Attention Weights </u>
 It's important to mention that for the first and third histograms the x-axis was fixed in contrast to the second and fourth one
 where the x coordinates were so small we had to give it automatic scaling in order to understand what is going on.
 
-- It's worth to mention that the softmax graphs were very sensitive and hard to plot so we have applied a log function on the values to present a better plot (this applies to second and fourth graphs)
+- The softmax graphs were very sensitive and hard to plot so we have applied a log function on the values to present a better plot (this applies to second and fourth graphs)
 
 ![alt_graphs](experiments_images/graphs.png)
 
@@ -74,6 +79,22 @@ In previous section we showed 2 versions of the experiment: with and without per
 Before SoftMax the tensor has a typical look of SOTed features - symmetric and with dense diagonal.    
 Even though SOT outputs positive values, since every row counts to 2, SoftMax is still needed. Nevertheless, we experimented without SoftMax and the results were
 better in one case and worse in the other.
+
+### <u> Heatmap of specific patches </u>
+
+The next images show how the attention weights per patch (there are 64 patches of size 4*4) look like with and without SOT.
+It can be seen that whilst in the general case the location of the patch has only a subtle influence on the attention, when applying SOT however it gets very different due to nature of SOT which attributes more weight to areas that are similiar. Also, the patch itself is allways wight for the same reason. 
+
+####<u>Without SOT</u>
+![test](experiments_images/without_SOT(test_set).png)
+
+####<u>With SOT(Q)</u>
+![test](experiments_images/withSOT(Q)(testTime).png)
+For example, in the third patch, the attention is awarded to the ceiling/background of the image (probably) because it is the most similiar part
+
+####<u>With SOT(Q, K)</u>
+![test](experiments_images/with_SOT(Q, K)(test_set).png)
+
 ***
 
 ## How to Run
