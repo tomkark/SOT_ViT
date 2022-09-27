@@ -32,6 +32,7 @@ class Attention(Module):
 
     def __init__(self, dim, num_heads=8, attention_dropout=0.1, projection_dropout=0.1, **kwargs):
         super().__init__()
+        print(kwargs)
         self.num_heads = num_heads
         head_dim = dim // self.num_heads
         self.scale = head_dim ** -0.5
@@ -47,6 +48,7 @@ class Attention(Module):
         self.saved_file = kwargs.get('saved_file', False)
         self.mean, self.std = [0.4914, 0.4822, 0.4465], [0.2470, 0.2435, 0.2616]
         self.first = True
+
 
     @staticmethod
     def plot_pair(axes, j, title_hist, p, **kwargs):
