@@ -65,7 +65,8 @@ class Attention(Module):
     @staticmethod
     def plot_test(self, attn_no_sot, attn_sot, random_index):
         self.first = False
-        fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(20, 10))
+        fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(14, 10))
+        fig.suptitle('Attention Comparison', fontsize=16)
         p = attn_no_sot[random_index][1]
         # plot the distribution of the attention weights on the left plot
         self.plot_pair(axes, 0, '(Pre-Softmax) Original Attention', p.detach().cpu().numpy())
@@ -82,7 +83,8 @@ class Attention(Module):
         if isinstance(self.saved_file, bool):
             print("Need to pass first file name to load  the plot")
             return
-        fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(10, 20))
+        fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(8, 15))
+        fig.suptitle('Patches', fontsize=16)
         loaded = torchvision.utils.make_grid(torch.load(self.saved_file))
         # Inverting the normalization
         loaded = loaded.permute(1, 2, 0).mul(torch.tensor(self.std))
