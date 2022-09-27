@@ -36,6 +36,16 @@ DATASETS = {
 }
 
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 def init_parser():
     parser = argparse.ArgumentParser(description='CIFAR quick training script')
 
@@ -43,8 +53,10 @@ def init_parser():
     parser.add_argument('data', metavar='DIR',
                         help='path to dataset')
     parser.add_argument('--ot', type=float, default=0.5)
-    parser.add_argument('--qk', '--use-both-qk', type=bool, default=False)
-    parser.add_argument('--SOT', '--with-SOT', type=bool, default=True)
+    parser.add_argument('--qk', type=str2bool, nargs='?',
+                        const=True, default=False)
+    parser.add_argument('--SOT', type=str2bool, nargs='?',
+                        const=True, default=Truefix)
     parser.add_argument('--dataset',
                         type=str.lower,
                         choices=['cifar10', 'cifar100'],
