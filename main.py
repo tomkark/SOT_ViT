@@ -50,7 +50,7 @@ def init_parser():
     parser = argparse.ArgumentParser(description='CIFAR quick training script')
 
     # Data args
-    parser.add_argument('data', metavar='DIR',
+    parser.add_argument('--data', type=str, metavar='DIR',
                         help='path to dataset')
     parser.add_argument('--ot', type=float, default=0.5)
     parser.add_argument('--qk', type=str2bool, nargs='?',
@@ -191,7 +191,6 @@ def main():
     print("Beginning training {}".format(args.ot))
     time_begin = time()
     for epoch in range(args.epochs):
-        array_avi[0] = epoch
         adjust_learning_rate(optimizer, epoch, args)
         cls_train(train_loader, model, criterion, optimizer, epoch, args, time_begin)
         acc1 = cls_validate(val_loader, model, criterion, args, epoch=epoch, time_begin=time_begin)
