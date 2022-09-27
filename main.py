@@ -141,8 +141,7 @@ def main():
                                         patch_size=args.patch_size,
                                         ot=args.ot,
                                         withSOT=args.SOT,
-                                        qk=args.qk,
-                                        plot=True)
+                                        qk=args.qk)
 
     criterion = LabelSmoothingCrossEntropy()
 

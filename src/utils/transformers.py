@@ -80,7 +80,7 @@ class Attention(Module):
         self.plot_pair(axes, 3, '(Post-Softmax) SOT Attention Weights', p.detach().cpu().numpy(), noRange=True)
         plt.show()
         if isinstance(self.saved_file, bool):
-            print("Need to pass first file name to save the plot")
+            print("Need to pass first file name to load  the plot")
             return
         fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(10, 20))
         loaded = torchvision.utils.make_grid(torch.load(self.saved_file))
