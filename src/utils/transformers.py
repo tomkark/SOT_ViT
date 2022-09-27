@@ -40,11 +40,13 @@ class Attention(Module):
         self.attn_drop = Dropout(attention_dropout)
         self.proj = Linear(dim, dim)
         self.proj_drop = Dropout(projection_dropout)
-        # if a keyword argument 'iloveavi' exists, send it as ot to the SOT constructor
-        self.SOT = SOT(ot_reg=kwargs.get('iloveavi', False))
-        self.start = time()
+        self.SOT = SOT(ot_reg=kwargs.get('ot', False))
+        self.withSOT = kwargs.get('withSOT', False)
+        self.plot = kwargs.get('plot', False)
+        self.qk = kwargs.get('qk', False)
+        self.saved_file = kwargs.get('saved_file', False)
         self.mean, self.std = [0.4914, 0.4822, 0.4465], [0.2470, 0.2435, 0.2616]
-        self.a = False
+        self.first = True
 
     @staticmethod
     def plot_pair(axes, j, title_hist, p, **kwargs):
@@ -58,89 +60,88 @@ class Attention(Module):
         i = pl.imshow(p, cmap='hot', interpolation='nearest')
         plt.colorbar(i, ax=pl)
 
+    @staticmethod
+    def plot_test(self, attn_no_sot, attn_sot, random_index):
+        self.first = False
+        fig, axes = plt.subplots(nrows=2, ncols=4)
+        p = attn_no_sot[random_index][1]
+        # plot the distribution of the attention weights on the left plot
+        self.plot_pair(axes, 0, '(Pre-Softmax) Original Attention', p.detach().cpu().numpy())
+        attn_no_sot_1 = attn_no_sot * self.scale
+        attn_no_sot_1 = attn_no_sot_1.softmax(dim=-1)
+        attn_no_sot_1 = self.attn_drop(attn_no_sot_1)
+        p = attn_no_sot_1[random_index][1]
+        self.plot_pair(axes, 1, '(Post-Softmax) Original Attention Weights', p.detach().cpu().numpy(), noRange=True)
+        p = attn_sot[random_index][1]
+        self.plot_pair(axes, 2, '(Pre-Softmax) SOT Attention Weights', p.detach().cpu().numpy())
+        p = attn_sot[random_index][1]
+        self.plot_pair(axes, 3, '(Post-Softmax) SOT Attention Weights', p.detach().cpu().numpy(), noRange=True)
+        plt.show()
+        if isinstance(self.saved_file, bool):
+            print("Need to pass first file name to save the plot")
+            return
+        fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(1, 1))
+        loaded = torchvision.utils.make_grid(torch.load(self.saved_file))
+        # Inverting the normalization
+        loaded = loaded.permute(1, 2, 0).mul(torch.tensor(self.std))
+        loaded += torch.tensor(self.mean)
+        loaded = loaded.detach().cpu().numpy()
+        avi1 = cv2.rectangle(cv2.cvtColor(loaded, cv2.COLOR_BGR2GRAY), (15, 15), (21, 21), (0, 0, 0), 1)
+        axes[0][0].imshow(avi1, cmap='gray')
+        avi2 = cv2.rectangle(cv2.cvtColor(loaded, cv2.COLOR_BGR2GRAY), (11, 23), (16, 28), (0, 0, 0), 1)
+        axes[1][0].imshow(avi2, cmap='gray')
+        avi3 = cv2.rectangle(cv2.cvtColor(loaded, cv2.COLOR_BGR2GRAY), (11, 3), (16, 8), (0, 0, 0), 1)
+        axes[2][0].imshow(avi3, cmap='gray')
+
+        patch_heatmap = torch.zeros(32, 32, device=attn_sot.device)
+        patch_heatmap2 = torch.zeros(32, 32, device=attn_sot.device)
+        patch_heatmap3 = torch.zeros(32, 32, device=attn_sot.device)
+        cloned = attn_sot.clone() if self.withSOT else attn_no_sot.clone()
+        for i in range(32):
+            for j in range(32):
+                patch_heatmap[i, j] = cloned[0, 0, 36, math.floor((i / 4)) * 8 + math.floor(j / 4)]
+                patch_heatmap2[i, j] = cloned[0, 0, 51, math.floor((i / 4)) * 8 + math.floor(j / 4)]
+                patch_heatmap3[i, j] = cloned[0, 0, 11, math.floor((i / 4)) * 8 + math.floor(j / 4)]
+
+        patch_heatmap = patch_heatmap.detach().cpu().numpy()
+        patch_heatmap2 = patch_heatmap2.detach().cpu().numpy()
+        patch_heatmap3 = patch_heatmap3.detach().cpu().numpy()
+
+        patch_heatmap, _ = image_histogram_equalization(patch_heatmap)
+        patch_heatmap2, _ = image_histogram_equalization(patch_heatmap2)
+        patch_heatmap3, _ = image_histogram_equalization(patch_heatmap3)
+
+        i = axes[0][1].imshow(patch_heatmap / 256, cmap='hot', interpolation='nearest')
+        plt.colorbar(i, ax=axes[0][1])
+        i = axes[1][1].imshow(patch_heatmap2 / 256, cmap='hot', interpolation='nearest')
+        plt.colorbar(i, ax=axes[1][1])
+        i = axes[2][1].imshow(patch_heatmap3 / 256, cmap='hot', interpolation='nearest')
+        plt.colorbar(i, ax=axes[2][1])
+        plt.show()
+
     def forward(self, x):
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
-        
-        withSOT = 0
-        plot = 0
-        qk = 0
-        
-        if plot:
-            fig, axes = plt.subplots(nrows=2, ncols=4)
-            self.a = True
-            fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(1, 1))
-            avi = torchvision.utils.make_grid(torch.load('exampleImage.pt'))
-            # Inverting the normalization
-            avi = avi.permute(1, 2, 0).mul(torch.tensor(self.std))
-            avi += torch.tensor(self.mean)
-            avi = avi.detach().cpu().numpy()
-            avi1 = cv2.rectangle(cv2.cvtColor(avi, cv2.COLOR_BGR2GRAY), (15, 15), (21, 21), (0, 0, 0), 1)
-            axes[0][0].imshow(avi1, cmap='gray')
-            avi2 = cv2.rectangle(cv2.cvtColor(avi, cv2.COLOR_BGR2GRAY), (11, 23), (16, 28), (0, 0, 0), 1)
-            axes[1][0].imshow(avi2, cmap='gray')
-            avi3 = cv2.rectangle(cv2.cvtColor(avi, cv2.COLOR_BGR2GRAY), (11, 3), (16, 8), (0, 0, 0), 1)
-            axes[2][0].imshow(avi3, cmap='gray')
-        if not withSOT:
+        if self.plot or not self.withSOT:
             attn = (q @ k.transpose(-2, -1))
-        if plot:
-            random_index = torch.randint(0, B, (1,)).item()
-            p = attn[random_index][1]
-            # plot the distribution of the attention weights on the left plot
-            self.plot_pair(axes, 0, '(Pre-Softmax) Original Attention', p.detach().cpu().numpy())
-            attn = attn * self.scale
-            attn = attn.softmax(dim=-1)
-            attn = self.attn_drop(attn)
-            p = attn[random_index][1]
-            self.plot_pair(axes, 1, '(Post-Softmax) Original Attention Weights', p.detach().cpu().numpy(), noRange=True)
-            
-        if withSOT:
+            if self.plot:
+                attn_no_sot = attn.clone()
+        if self.plot or self.withSOT:
             attn = torch.zeros(q.shape[0], q.shape[1], q.shape[2], q.shape[2], device=v.device)
-            if not qk:
+            if not self.qk:
                 for j in range(attn.shape[1]):
                     attn[:, j, :, :] = self.SOT(q[:, j, :, :])
             else:
                 for j in range(attn.shape[1]):
                     attn[:, j, :, :] = self.SOT(q[:, j, :, :], k[:, j, :, :])
-                
-            
-        if plot:
-            p = attn[random_index][1]
-            self.plot_pair(axes, 2, '(Pre-Softmax) SOT Attention Weights', p.detach().cpu().numpy())
-            patch_heatmap = torch.zeros(32, 32, device="cuda:0")
-            patch_heatmap2 = torch.zeros(32, 32, device="cuda:0")
-            patch_heatmap3 = torch.zeros(32, 32, device="cuda:0")
-            for i in range(32):
-                for j in range(32):
-                    patch_heatmap[i, j] = attn[0, 0, 36, math.floor((i / 4)) * 8 + math.floor(j / 4)]
-                    patch_heatmap2[i, j] = attn[0, 0, 51, math.floor((i / 4)) * 8 + math.floor(j / 4)]
-                    patch_heatmap3[i, j] = attn[0, 0, 11, math.floor((i / 4)) * 8 + math.floor(j / 4)]
-
-            patch_heatmap = patch_heatmap.detach().cpu().numpy()
-            patch_heatmap2 = patch_heatmap2.detach().cpu().numpy()
-            patch_heatmap3 = patch_heatmap3.detach().cpu().numpy()
-
-            patch_heatmap, _ = image_histogram_equalization(patch_heatmap)
-            patch_heatmap2, _ = image_histogram_equalization(patch_heatmap2)
-            patch_heatmap3, _ = image_histogram_equalization(patch_heatmap3)
-
-            i = axes[0][1].imshow(patch_heatmap / 256, cmap='hot', interpolation='nearest')
-            plt.colorbar(i, ax=axes[0][1])
-            i = axes[1][1].imshow(patch_heatmap2 / 256, cmap='hot', interpolation='nearest')
-            plt.colorbar(i, ax=axes[1][1])
-            i = axes[2][1].imshow(patch_heatmap3 / 256, cmap='hot', interpolation='nearest')
-            plt.colorbar(i, ax=axes[2][1])
-            plt.show()
-
-
+            if self.plot:
+                attn_sot = attn.clone()
+        if self.plot and self.first:
+            self.plot_test(self, attn_no_sot, attn_sot, torch.randint(0, B, (1,)).item())
         attn = attn * self.scale
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
-        if plot:
-            p = attn[random_index][1]
-            self.plot_pair(axes, 3, '(Post-Softmax) SOT Attention Weights', p.detach().cpu().numpy(), noRange=True)
-            plt.show()
         x = (attn @ v).transpose(1, 2).reshape(B, N, C)
         x = self.proj(x)
         x = self.proj_drop(x)

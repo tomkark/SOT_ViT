@@ -43,7 +43,8 @@ def init_parser():
     parser.add_argument('data', metavar='DIR',
                         help='path to dataset')
     parser.add_argument('--ot', type=float, default=0.5)
-    
+    parser.add_argument('--qk', '--use-both-qk', type=bool, default=False)
+    parser.add_argument('--SOT', '--with-SOT', type=bool, default=True)
     parser.add_argument('--dataset',
                         type=str.lower,
                         choices=['cifar10', 'cifar100'],
@@ -127,8 +128,10 @@ def main():
                                         n_conv_layers=args.conv_layers,
                                         kernel_size=args.conv_size,
                                         patch_size=args.patch_size,
-                                        iloveavi=args.ot,
-                                        array_avi=array_avi)
+                                        ot=args.ot,
+                                        withSOT=args.SOT,
+                                        qk=args.qk,
+                                        plot=True)
 
     criterion = LabelSmoothingCrossEntropy()
 

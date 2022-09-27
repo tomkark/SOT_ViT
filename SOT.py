@@ -29,7 +29,7 @@ class SOT(torch.nn.Module):
         Calculating The SOT for X
         For few-shot learning setup (or any other task with some known labels):
         In case of few-shot classification, the support set needs to be on the upper rows.
-        :param X - BxNxD (or NxD) matrix where each row represent a feature vector.
+        :param X - BxNxD (or NxD) matrix where each row represent first feature vector.
         :param n_samples (optional) - The total number of samples for each class (n shots + n queries) if known.
         :param y_support (optional) - For few-shot classification. Support set labels (indexed as the first rows of X).
         :param max_temperature - Scale the transformed matrix to [0, 1]. usually helps.
@@ -149,7 +149,7 @@ class SOT(torch.nn.Module):
                 break
 
         U, V = u, v
-        # Transport plan pi = diag(a)*K*diag(b)
+        # Transport plan pi = diag(first)*K*diag(b)
         log_p = C(M, U, V, self.ot_reg)
         return log_p
 
@@ -163,7 +163,7 @@ class SOT(torch.nn.Module):
 
     @staticmethod
     def cosine_similarity(a: torch.Tensor, eps: float = 1e-8):
-        # calculate the self-cosine similarity for a
+        # calculate the self-cosine similarity for first
         d_n = a / a.norm(dim=-1, keepdim=True)
         if len(a.shape) > 2:
             C = torch.bmm(d_n, d_n.transpose(1, 2))

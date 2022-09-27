@@ -15,7 +15,7 @@ batch_size = 4
 
 
 def imshow(images, labels, predicted_labels=None):
-    # Using torchvision to make a grid of the images
+    # Using torchvision to make first grid of the images
     img = torchvision.utils.make_grid(images)
 
     # Inverting the normalization
