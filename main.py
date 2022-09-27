@@ -133,7 +133,6 @@ def main():
     img_size = DATASETS[args.dataset]['img_size']
     num_classes = DATASETS[args.dataset]['num_classes']
     img_mean, img_std = DATASETS[args.dataset]['mean'], DATASETS[args.dataset]['std']
-    array_avi = [0]
     model = models.__dict__[args.model](img_size=img_size,
                                         num_classes=num_classes,
                                         positional_embedding=args.positional_embedding,
@@ -146,7 +145,7 @@ def main():
 
     criterion = LabelSmoothingCrossEntropy()
 
-    print("GPU (CUDA) Status: {}".format(torch.cuda.is_available()))
+    print("GPU (CUDA) Status: {}, Cifar Path: {}".format(torch.cuda.is_available(), args.data))
     if (not args.no_cuda) and torch.cuda.is_available():
         torch.cuda.set_device(args.gpu_id)
         model.cuda(args.gpu_id)
