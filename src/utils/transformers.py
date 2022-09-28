@@ -41,7 +41,7 @@ class Attention(Module):
         self.attn_drop = Dropout(attention_dropout)
         self.proj = Linear(dim, dim)
         self.proj_drop = Dropout(projection_dropout)
-        self.SOT = SOT(ot_reg=kwargs.get('ot', False))
+        self.SOT = SOT(ot_reg=kwargs.get('ot', 0.1))
         self.withSOT = kwargs.get('withSOT', False)
         self.plot = kwargs.get('plot', False)
         self.qk = kwargs.get('qk', False)
