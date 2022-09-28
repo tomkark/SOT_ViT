@@ -65,7 +65,7 @@ class Attention(Module):
     @staticmethod
     def plot_test(self, attn_no_sot, attn_sot, random_index):
         self.first = False
-        fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(14, 10))
+        fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(18, 10))
         fig.suptitle('Attention Comparison', fontsize=16)
         p = attn_no_sot[random_index][1]
         # plot the distribution of the attention weights on the left plot
