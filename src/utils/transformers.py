@@ -49,7 +49,6 @@ class Attention(Module):
         self.mean, self.std = [0.4914, 0.4822, 0.4465], [0.2470, 0.2435, 0.2616]
         self.first = True
 
-
     @staticmethod
     def plot_pair(axes, j, title_hist, p, **kwargs):
         pl = axes[0][j]
@@ -131,6 +130,8 @@ class Attention(Module):
             attn = (q @ k.transpose(-2, -1))
             if self.plot:
                 attn_no_sot = attn.clone()
+            if self.withSOT:
+                final_attn = attn.clone()
         if self.plot or self.withSOT:
             attn = torch.zeros(q.shape[0], q.shape[1], q.shape[2], q.shape[2], device=v.device)
             if not self.qk:
@@ -141,12 +142,14 @@ class Attention(Module):
                     attn[:, j, :, :] = self.SOT(q[:, j, :, :], k[:, j, :, :])
             if self.plot:
                 attn_sot = attn.clone()
+            if not self.withSOT:
+                final_attn = attn.clone()
         if self.plot and self.first:
             self.plot_test(self, attn_no_sot, attn_sot, torch.randint(0, B, (1,)).item())
-        attn = attn * self.scale
-        attn = attn.softmax(dim=-1)
-        attn = self.attn_drop(attn)
-        x = (attn @ v).transpose(1, 2).reshape(B, N, C)
+        final_attn = final_attn * self.scale
+        final_attn = final_attn.softmax(dim=-1)
+        final_attn = self.attn_drop(final_attn)
+        x = (final_attn @ v).transpose(1, 2).reshape(B, N, C)
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
