@@ -107,11 +107,11 @@ Indeed, some of the heatmaps are less explainable
 ## How to Run
 
 ```bash
-  python main.py --ot 0.1 --model cct_2 --conv-size 3 --conv-layers 2 --print-freq -1 --epochs 30 --workers 1 cifar10/
+  python main.py --SOT=True --qk=False --plot-True --ot 0.1 --model cct_2 --conv-size 3 --conv-layers 2 --print-freq -1 --epochs 30 --workers 1 cifar10/
 ```
 
 You may change the arguments to your liking, the provided command is what we used in our experiments when using the default regularization coefficient
-(the ot argument)
+(the ot argument), with SOT on q and not on both q and k, and lastly with plotting the visual results.
 
 
 
