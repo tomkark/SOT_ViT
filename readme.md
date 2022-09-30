@@ -17,7 +17,7 @@ attn = (q @ k.transpose(-2, -1))
 
 Where Q and K are two of the three vectors in the attention mechanism.
 
-<b>This achieved 78.14% accuracy at best</b>
+<b>This achieved 78.14% accuracy over the validation and test sets after 30 epochs which is the number of epochs we experimented with</b>
 
 ***
 ### <u>After changing the attention</u>
@@ -40,7 +40,7 @@ More about the Softmax part later.
 
 ### <u>Overfitting</u>
 The levels of overfitting seem to be similiar in both cases but we believe there's room for further analysis.
-In the trainTest notebook the difference of accuracy between train and test time can be seen.
+The difference of accuracy between train and test time can be seen in the trainTest notebook.
 
 ### <u>Testing SOT With Different Regularization Coefficients</u>
 We have ran a test to see whether different regularization coefficients achieved  
@@ -53,6 +53,10 @@ The graph represents the average best accuracy of the model for each coefficient
 * We can definitely see that the results are very close to the original attention mechanism results, around 77-78%.  
 * It's safe to assume that running the above experiment many times will provide a smoother graph.
 ***
+
+### <u>After many epochs</u>
+We have realized that when increasing the number of epochs, the differences among the modes decreased.
+For example, after performing 200 epochs, both nodels acheived ~87% success rate on the validation and test sets.
 
 ## Visual Results
 
