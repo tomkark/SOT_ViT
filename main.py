@@ -206,9 +206,8 @@ def main():
         loss_val_list.append(loss_validate)
         best_acc_val = max(acc_validate, best_acc_val)
         best_acc_train = max(acc_train, best_acc_train)
-    plt.plot(loss_train_list, label='train')
-    plt.plot(loss_val_list, label='val')
-    plt.show()
+    print("Loss Validate: ", loss_validate)
+    print("Loss Train: ", loss_train)
     total_mins = (time() - time_begin) / 60
     logging.info(f'Script finished in {total_mins:.2f} minutes, '
                  f'best top-1 (Validate): {best_acc_val:.2f}, '
