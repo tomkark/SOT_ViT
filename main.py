@@ -13,12 +13,14 @@ import torchvision.datasets as datasets
 import logging
 import src as models
 from utils.losses import LabelSmoothingCrossEntropy
-import numpy as np
+import matplotlib.pyplot as plt
+
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("_")
                      and callable(models.__dict__[name]))
 
-best_acc1 = 0
+best_acc_val = 0
+best_acc_train = 0
 
 DATASETS = {
     'cifar10': {
@@ -45,6 +47,7 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
 
 def init_parser():
     parser = argparse.ArgumentParser(description='CIFAR quick training script')
@@ -122,7 +125,7 @@ def init_parser():
 
 
 def main():
-    global best_acc1
+    global best_acc_val, best_acc_train
 
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(message)s",
@@ -190,17 +193,31 @@ def main():
         num_workers=args.workers)
     print("Beginning training {}".format(args.ot))
     time_begin = time()
+    loss_train_list = []
+    loss_val_list = []
     for epoch in range(args.epochs):
         adjust_learning_rate(optimizer, epoch, args)
-        cls_train(train_loader, model, criterion, optimizer, epoch, args, time_begin)
-        acc1 = cls_validate(val_loader, model, criterion, args, epoch=epoch, time_begin=time_begin)
-        best_acc1 = max(acc1, best_acc1)
-
+        loss_train, acc_train = cls_train(train_loader, model, criterion, optimizer, epoch, args, time_begin)
+        loss_validate, acc_validate = cls_validate(val_loader, model, criterion, args, epoch=epoch)
+        total_mins = -1 if time_begin is None else (time() - time_begin) / 60
+        print(f'[Epoch {epoch + 1}] \t \t Top-1 (Train) {acc_train:6.5f} \t \t Top-1 (Validate) {acc_validate:6.5f}'
+              f' \t \t Time: {total_mins:.2f}')
+        loss_train_list.append(loss_train)
+        loss_val_list.append(loss_validate)
+        best_acc_val = max(acc_validate, best_acc_val)
+        best_acc_train = max(acc_train, best_acc_train)
+    plt.plot(loss_train_list, label='train')
+    plt.plot(loss_val_list, label='val')
+    plt.show()
     total_mins = (time() - time_begin) / 60
     logging.info(f'Script finished in {total_mins:.2f} minutes, '
-          f'best top-1: {best_acc1:.2f}, '
-          f'final top-1: {acc1:.2f}, Entropy Coefficient: {args.ot}')
+                 f'best top-1 (Validate): {best_acc_val:.2f}, '
+                 f'best top-1 (Train): {best_acc_train:.2f},' 
+                 f'final top-1 (Validate): {acc_validate:.2f}, '
+                 f'final top-1 (Train): {acc_train:.2f}'
+                 f' Entropy Coefficient: {args.ot}')
     torch.save(model.state_dict(), args.checkpoint_path)
+
 
 def adjust_learning_rate(optimizer, epoch, args):
     lr = args.lr
@@ -234,7 +251,7 @@ def cls_train(train_loader, model, criterion, optimizer, epoch, args, time_begin
     a = False
     for i, (images, target) in enumerate(train_loader):
         # load exampleImage.pt to first index in images
-        #torch.save(images[0], "exampleImage.pt")
+        # torch.save(images[0], "exampleImage.pt")
         if a and time() - time_begin > 0:
             images[0] = torch.load("exampleImage.pt")
             a = True
@@ -262,8 +279,11 @@ def cls_train(train_loader, model, criterion, optimizer, epoch, args, time_begin
             avg_loss, avg_acc1 = (loss_val / n), (acc1_val / n)
             print(f'[Epoch {epoch + 1}][Train][{i}] \t Loss: {avg_loss:.4e} \t Top-1 {avg_acc1:6.2f}')
 
+    avg_loss, avg_acc1 = (loss_val / n), (acc1_val / n)
+    return avg_loss, avg_acc1
 
-def cls_validate(val_loader, model, criterion, args, epoch=None, time_begin=None):
+
+def cls_validate(val_loader, model, criterion, args, epoch=None):
     model.eval()
     loss_val, acc1_val = 0, 0
     n = 0
@@ -286,11 +306,7 @@ def cls_validate(val_loader, model, criterion, args, epoch=None, time_begin=None
                 print(f'[Epoch {epoch + 1}][Eval][{i}] \t Loss: {avg_loss:.4e} \t Top-1 {avg_acc1:6.2f}')
 
     avg_loss, avg_acc1 = (loss_val / n), (acc1_val / n)
-    total_mins = -1 if time_begin is None else (time() - time_begin) / 60
-    print(f'[Epoch {epoch + 1}] \t \t Top-1 {avg_acc1:6.5f} \t \t Time: {total_mins:.2f}')
-    
-
-    return avg_acc1
+    return avg_loss, avg_acc1
 
 
 if __name__ == '__main__':

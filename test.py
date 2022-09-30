@@ -54,14 +54,24 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
 
 dataiter = iter(trainloader)
 test_dataiter = iter(testloader)
+saved_file = "image.pt"
 transformer = cct_2(img_size=32,
                     num_classes=10,
                     positional_embedding='learnable',
                     n_conv_layers=2,
-                    kernel_size=3)
+                    kernel_size=3,
+                    plot=True,
+                    saved_file=saved_file)
 
-transformer.load_state_dict(torch.load('checkpoint-nosot.pth'))
+transformer.load_state_dict(torch.load('checkpoint.pth'))
 images, labels = test_dataiter.next()
+torch.save(images[0], saved_file)
+torch.save(labels[0], "labels.pt")
+images[0] = torch.load(saved_file)
+labels[0] = torch.load("labels.pt")
+
+
+
 #torch.save(images[0], "exampleImage.pt")
 images[0] = torch.load("images/exampleImage.pt")
 _, predicted = torch.max(transformer(images), 1)
