@@ -130,7 +130,7 @@ class Attention(Module):
             attn = (q @ k.transpose(-2, -1))
             if self.plot:
                 attn_no_sot = attn.clone()
-            if self.withSOT:
+            if not self.withSOT:
                 final_attn = attn.clone()
         if self.plot or self.withSOT:
             attn = torch.zeros(q.shape[0], q.shape[1], q.shape[2], q.shape[2], device=v.device)
@@ -142,7 +142,7 @@ class Attention(Module):
                     attn[:, j, :, :] = self.SOT(q[:, j, :, :], k[:, j, :, :])
             if self.plot:
                 attn_sot = attn.clone()
-            if not self.withSOT:
+            if self.withSOT:
                 final_attn = attn.clone()
         if self.plot and self.first:
             self.plot_test(self, attn_no_sot, attn_sot, torch.randint(0, B, (1,)).item())
